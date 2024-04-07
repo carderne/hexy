@@ -1,0 +1,19 @@
+meta {
+  name: Authorize
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://www.strava.com/oauth/authorize?client_id={{STRAVA_CLIENT_ID}}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=read,activity:read
+  body: none
+  auth: none
+}
+
+query {
+  client_id: {{STRAVA_CLIENT_ID}}
+  response_type: code
+  redirect_uri: http://localhost/exchange_token
+  approval_prompt: force
+  scope: read,activity:read
+}

@@ -1,0 +1,18 @@
+[package]
+name = "hexy"
+version = "0.1.0"
+license = "MIT"
+authors = ["Chris Arderne <chris@rdrn.me"]
+description = "doing stuff with Strava"
+edition = "2021"
+
+[dependencies]
+diesel = { version = "2.1.0", features = ["sqlite"] }
+dotenvy = "0.15"
+geo-types = "0.7.13"
+geojson = "0.24.1"
+polyline = "0.10.1"
+reqwest = { version = "0.12.3", features = ["json"] }
+rocket = { version = "0.5.0", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+url = "2.5.0"
