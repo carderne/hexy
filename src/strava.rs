@@ -9,7 +9,7 @@ pub struct Athlete {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ExchangeResponse {
+pub struct TokenResponse {
     pub athlete: Athlete,
     pub refresh_token: String,
     pub access_token: String,
@@ -26,9 +26,30 @@ pub struct Map {
 pub struct ActivitiesResponse {
     pub id: i64,
     pub name: String,
-    pub map: Map,
+    pub distance: f64,
+    pub moving_time: i64,
+    pub elapsed_time: i64,
+    pub start_date: chrono::DateTime<chrono::Utc>,
+    pub kudos_count: i32,
+    pub average_speed: f64,
+
     #[serde(rename = "type")]
     pub ac_type: String,
+    pub sport_type: String,
+
+    pub map: Map,
+}
+
+impl ActivitiesResponse {
+    pub fn to_json_object(&self) -> Option<geojson::JsonObject> {
+        let mut value = serde_json::to_value(self).unwrap();
+        if let geojson::JsonValue::Object(ref mut obj) = value {
+            obj.remove("map");
+            Some(obj.clone())
+        } else {
+            None
+        }
+    }
 }
 
 fn create_activities_url() -> Result<String, ParseError> {
@@ -37,6 +58,7 @@ fn create_activities_url() -> Result<String, ParseError> {
     let mut url = Url::parse(&base)?;
     let path = "api/v3/athlete/activities";
     url = url.join(path)?;
+    url.query_pairs_mut().append_pair("per_page", "200");
     Ok(url.to_string())
 }
 
@@ -88,7 +110,7 @@ pub async fn get_activities(token: &str) -> Vec<ActivitiesResponse> {
         .unwrap()
 }
 
-pub async fn get_token(code: &str) -> ExchangeResponse {
+pub async fn get_token(code: &str) -> TokenResponse {
     let url = create_token_url(code).unwrap();
     let client = reqwest::Client::new();
     client
@@ -96,7 +118,7 @@ pub async fn get_token(code: &str) -> ExchangeResponse {
         .send()
         .await
         .unwrap()
-        .json::<ExchangeResponse>()
+        .json::<TokenResponse>()
         .await
         .unwrap()
 }

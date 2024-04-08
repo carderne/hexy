@@ -7,6 +7,7 @@ description = "doing stuff with Strava"
 edition = "2021"
 
 [dependencies]
+chrono = { version = "0.4.37", features = ["serde"] }
 diesel = { version = "2.1.0", features = ["sqlite"] }
 dotenvy = "0.15"
 geo-types = "0.7.13"
@@ -18,4 +19,5 @@ rocket = { version = "0.5.0", features = ["json"] }
 rocket_dyn_templates = { version = "0.1.0", features = ["handlebars"] }
 rocket_okapi = { version = "0.8.0", features = [ "rapidoc" ] }
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 url = "2.5.0"

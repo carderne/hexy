@@ -10,7 +10,7 @@ fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-pub fn save_user(t: strava::ExchangeResponse) {
+pub fn save_user(t: strava::TokenResponse) {
     let user = models::User {
         id: t.athlete.id,
         refresh_token: t.refresh_token,

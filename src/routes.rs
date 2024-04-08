@@ -19,7 +19,7 @@ pub async fn build() -> Result<Rocket<Ignite>, Error> {
         .mount("/static", FileServer::from(relative!("static")))
         .mount(
             "/",
-            openapi_get_routes![health, index, auth, exchange, user],
+            openapi_get_routes![health, index, auth, callback, user],
         )
         .mount(
             "/rapidoc",
@@ -60,8 +60,8 @@ fn auth() -> Redirect {
 }
 
 #[openapi(tag = "OAuth")]
-#[get("/exchange?<code>")]
-async fn exchange(code: &str) -> Redirect {
+#[get("/callback?<code>")]
+async fn callback(code: &str) -> Redirect {
     let t = strava::get_token(code).await;
     let redir_url = uri!(user(t.athlete.id, &t.access_token));
     // Not saving users, rather just redirect with param
@@ -71,8 +71,8 @@ async fn exchange(code: &str) -> Redirect {
 }
 
 #[openapi(skip)]
-#[get("/user/<_id>?<access_token>")]
-async fn user(_id: i32, access_token: &str) -> Template {
+#[get("/user/<id>?<access_token>")]
+async fn user(id: i32, access_token: &str) -> Template {
     // Should get user from db/session
     // but for now just using code directly
     // let user = db::get_user(id);
@@ -82,7 +82,7 @@ async fn user(_id: i32, access_token: &str) -> Template {
     // Json(geo::decode_all(activities))
 
     // But instead return template with injected GeoJSON
-    let gj = geo::decode_all(activities);
+    let gj = geo::decode_all(activities).to_string();
     let os_key = env::var("OS_KEY").unwrap();
-    Template::render("map", context! { gj: gj.to_string(), os_key })
+    Template::render("map", context! { gj, os_key, id })
 }

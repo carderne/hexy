@@ -1,6 +1,4 @@
-use geojson::{
-    Feature, FeatureCollection, GeoJson, Geometry, JsonObject, JsonValue, LineStringType, Value,
-};
+use geojson::{Feature, FeatureCollection, GeoJson, Geometry, LineStringType, Value};
 use polyline;
 
 use crate::strava;
@@ -20,14 +18,13 @@ pub fn decode_all(activities: Vec<strava::ActivitiesResponse>) -> GeoJson {
             Geometry::new(Value::LineString(ls))
         });
 
-        let mut properties = JsonObject::new();
-        properties.insert("type".to_string(), JsonValue::from(activity.ac_type));
+        let properties = activity.to_json_object();
 
         let feat = Feature {
             bbox: None,
             geometry,
             id: None,
-            properties: Some(properties),
+            properties,
             foreign_members: None,
         };
         features.push(feat);

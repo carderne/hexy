@@ -1,0 +1,74 @@
+html, body {
+  font: 1em arial;
+  margin: 0;
+  padding: 0;
+}
+
+#map {
+  width: 100vw;
+  height: 100vh;
+}
+
+.controls {
+  text-align: center;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  max-width: 240px;
+  width: 100%;
+}
+
+.top {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+#props {
+  margin-top: 40px;
+  display: none;
+}
+
+strong {
+  font-size: 1.4em;
+}
+
+.top > div {
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.leg {
+  width: 50%;
+  display: inline-block;
+  margin: 5px auto;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+  html, body {
+    font: 0.9em arial;
+  }
+
+  .controls {
+    top: 0;
+    left: 0;
+    max-width: 100%;
+    padding: 5px;
+  }
+
+  .top > div > * {
+    margin: 2px auto;
+  }
+
+  .top > div > span {
+    width: 40%;
+  }
+
+  .top > div {
+    display: flex;
+  }
+}
+

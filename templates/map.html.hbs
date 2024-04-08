@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Strava Activity Map</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👣</text></svg>" />
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" />
-<script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
-<style>
-    body { margin: 0; padding: 0; }
-    html, body, #map { height: 100%; }
-</style>
+  <title>Strava Activity Map</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👣</text></svg>" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
+  <link href="/static/style.css" rel="stylesheet"/>
 </head>
 <body>
 <div id="map"></div>
+<div class="controls">
+  <div class="top">
+    <div>
+      <p><strong>Strava Activity</strong></p>
+      <p><a target="_blank" href="https://www.strava.com/athletes/{{id}}">Your Strava profile</a></p>
+    </div>
+    <div>
+      <span class="leg" style="background-color:#d5b8da">Ride</span>
+      <span class="leg" style="background-color:#ffcb99">Run</span>
+      <span class="leg" style="background-color:#b7dfb6">Other</span>
+    </div>
+  </div>
+  <div id="props" class="top">
+    <div><strong id="p-name"></strong></div>
+    <div>Date: <span id="p-date"></span></div>
+    <div>Distance: <span id="p-distance"></span></div>
+    <div>Moving time: <span id="p-moving"></span></div>
+    <div>Type: <span id="p-type"></span></div>
+    <div>Sport Type: <span id="p-sport-type"></span></div>
+    <div><a target="_blank" id="p-id" href="">View on Strava</a></div>
+  </div>
+</div>
 <script>
 const osKey = "{{os_key}}";
 const data = {{gj}};
