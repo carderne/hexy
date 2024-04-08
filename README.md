@@ -15,7 +15,6 @@ API docs at [localhost:8000/rapidoc](http://localhost:8000/rapidoc).
 
 Need the following in your `.env`:
 ```bash
-DATABASE_URL=''
 REDIRECT_URI='http://localhost:8000/callback'
 
 STRAVA_BASE='https://www.strava.com'
