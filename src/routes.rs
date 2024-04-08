@@ -83,8 +83,16 @@ async fn user(id: i32, access_token: &str) -> Template {
 
     // But instead return template with injected GeoJSON
     let activities = data::decode_all(activities);
-    h3::polyfill_all(&activities);
+
+    let mut cells = h3::polyfill_all(&activities);
+    cells.sort();
+    cells.dedup();
+    let cells: Vec<String> = cells
+        .iter()
+        .map(|cell_index| format!("\"{:x}\"", cell_index))
+        .collect();
+
     let gj = data::to_geojson(activities).to_string();
     let os_key = env::var("OS_KEY").unwrap();
-    Template::render("map", context! { gj, os_key, id })
+    Template::render("map", context! { gj, os_key, id, cells })
 }

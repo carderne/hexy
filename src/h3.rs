@@ -1,16 +1,17 @@
 use geo;
 use h3o::{
-    geom::{PolyfillConfig, Polygon, ToCells},
+    geom::{LineString, PolyfillConfig, ToCells},
     CellIndex, Resolution,
 };
 
 use crate::data::Activity;
 
-pub fn polyfill(linestring: &geo::LineString) -> Vec<CellIndex> {
-    let polygon = geo::Polygon::new(linestring.to_owned(), vec![]);
-    let polygon = Polygon::from_degrees(polygon).unwrap();
-    let cells = polygon
-        .to_cells(PolyfillConfig::new(Resolution::Seven))
+fn polyfill(linestring: &geo::LineString) -> Vec<CellIndex> {
+    let coords: Vec<geo::Coord> = linestring.to_owned().into_inner();
+    let linestring = geo::LineString::new(coords);
+    let linestring = LineString::from_degrees(linestring).unwrap();
+    let cells = linestring
+        .to_cells(PolyfillConfig::new(Resolution::Nine))
         .collect::<Vec<_>>();
     cells
 }
@@ -24,6 +25,5 @@ pub fn polyfill_all(activities: &Vec<Activity>) -> Vec<CellIndex> {
         };
         all_cells.extend(cells);
     }
-    println!("{:?}", all_cells);
     all_cells
 }

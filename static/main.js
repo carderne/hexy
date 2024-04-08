@@ -1,3 +1,4 @@
+const h3Level = 9;
 const style = "https://raw.githubusercontent.com/OrdnanceSurvey/OS-Vector-Tile-API-Stylesheets/main/OS_VTS_3857_Light.json";
 
 const transformRequest = (url, resourceType) => {
@@ -7,6 +8,19 @@ const transformRequest = (url, resourceType) => {
       if(!url.searchParams.has("srs")) url.searchParams.append("srs", 3857);
       return { url: new Request(url).url }
   }
+};
+
+const hexes = {
+  type: "FeatureCollection",
+  features: cells.map((c, i) => ({
+    type: "Feature",
+    id: i,
+    properties: { index: c },
+    geometry: {
+      type: "MultiPolygon",
+      coordinates: h3.cellsToMultiPolygon([c], true),
+    },
+  })),
 };
 
 const map = new maplibregl.Map({
@@ -31,6 +45,20 @@ map.addControl(new maplibregl.NavigationControl({
 }));
 
 map.on("load", () => {
+  map.addSource("hex", {
+    type: "geojson",
+    data: hexes,
+  });
+  map.addLayer({
+    id: "hex",
+    type: "fill",
+    source: "hex",
+    paint: {
+      "fill-color": "hsla(0, 50%, 50%, 0.3)",
+      "fill-outline-color": "rgba(0,0,0,0)",
+    },
+  });
+
   map.addSource("activities", { "type": "geojson", data });
   map.addLayer({
     "id": "activities",
