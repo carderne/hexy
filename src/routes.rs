@@ -6,7 +6,7 @@ use rocket_okapi::settings::UrlObject;
 use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*};
 use std::env;
 
-use crate::{geo, strava};
+use crate::{data, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
     rocket::build()
@@ -82,7 +82,9 @@ async fn user(id: i32, access_token: &str) -> Template {
     // Json(geo::decode_all(activities))
 
     // But instead return template with injected GeoJSON
-    let gj = geo::decode_all(activities).to_string();
+    let activities = data::decode_all(activities);
+    h3::polyfill_all(&activities);
+    let gj = data::to_geojson(activities).to_string();
     let os_key = env::var("OS_KEY").unwrap();
     Template::render("map", context! { gj, os_key, id })
 }

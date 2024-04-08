@@ -1,14 +1,14 @@
 use reqwest::header::AUTHORIZATION;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::env;
 use url::{ParseError, Url};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct Athlete {
     pub id: i32,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct TokenResponse {
     pub athlete: Athlete,
     pub refresh_token: String,
@@ -16,14 +16,14 @@ pub struct TokenResponse {
     pub expires_at: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct Map {
     pub polyline: Option<String>,
     pub summary_polyline: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ActivitiesResponse {
+#[derive(Deserialize)]
+pub struct ActivityResponse {
     pub id: i64,
     pub name: String,
     pub distance: f64,
@@ -38,18 +38,6 @@ pub struct ActivitiesResponse {
     pub sport_type: String,
 
     pub map: Map,
-}
-
-impl ActivitiesResponse {
-    pub fn to_json_object(&self) -> Option<geojson::JsonObject> {
-        let mut value = serde_json::to_value(self).unwrap();
-        if let geojson::JsonValue::Object(ref mut obj) = value {
-            obj.remove("map");
-            Some(obj.clone())
-        } else {
-            None
-        }
-    }
 }
 
 fn create_activities_url() -> Result<String, ParseError> {
@@ -95,7 +83,7 @@ fn create_token_url(code: &str) -> Result<String, ParseError> {
     Ok(url.to_string())
 }
 
-pub async fn get_activities(token: &str) -> Vec<ActivitiesResponse> {
+pub async fn get_activities(token: &str) -> Vec<ActivityResponse> {
     let url = create_activities_url().unwrap();
     let client = reqwest::Client::new();
     let bearer = format!("Bearer {}", token);
@@ -105,7 +93,7 @@ pub async fn get_activities(token: &str) -> Vec<ActivitiesResponse> {
         .send()
         .await
         .unwrap()
-        .json::<Vec<ActivitiesResponse>>()
+        .json::<Vec<ActivityResponse>>()
         .await
         .unwrap()
 }
