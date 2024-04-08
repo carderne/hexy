@@ -27,7 +27,7 @@ pub struct ActivitiesResponse {
     pub id: i64,
     pub name: String,
     pub map: Map,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     pub ac_type: String,
 }
 

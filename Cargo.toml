@@ -16,5 +16,6 @@ polyline = "0.10.1"
 reqwest = { version = "0.12.3", features = ["json"] }
 rocket = { version = "0.5.0", features = ["json"] }
 rocket_dyn_templates = { version = "0.1.0", features = ["handlebars"] }
+rocket_okapi = { version = "0.8.0", features = [ "rapidoc" ] }
 serde = { version = "1.0", features = ["derive"] }
 url = "2.5.0"
