@@ -1,34 +1,40 @@
-use geojson::{Feature, FeatureCollection, GeoJson, Geometry, Value};
+use geojson::{
+    Feature, FeatureCollection, GeoJson, Geometry, JsonObject, JsonValue, LineStringType, Value,
+};
 use polyline;
 
 use crate::strava;
 
 pub fn decode_all(activities: Vec<strava::ActivitiesResponse>) -> GeoJson {
-    let empty_poly = "".to_string();
-    let mut feats: Vec<Feature> = Vec::with_capacity(activities.len());
+    let mut features: Vec<Feature> = Vec::with_capacity(activities.len());
     for activity in activities {
-        let poly = activity
+        let polyline = activity
             .map
-            .polyline
+            .polyline // TODO: get all activities never has polyline
             .as_ref()
-            .or(activity.map.summary_polyline.as_ref())
-            .unwrap_or(&empty_poly);
-        let line_string = polyline::decode_polyline(poly, 5).unwrap();
-        let ls: Vec<Vec<f64>> = line_string.into_iter().map(|c| vec![c.x, c.y]).collect();
+            .or(activity.map.summary_polyline.as_ref());
 
-        let geom = Geometry::new(Value::LineString(ls));
+        let geometry: Option<Geometry> = polyline.map(|poly| {
+            let line_string = polyline::decode_polyline(poly, 5).unwrap();
+            let ls: LineStringType = line_string.into_iter().map(|c| vec![c.x, c.y]).collect();
+            Geometry::new(Value::LineString(ls))
+        });
+
+        let mut properties = JsonObject::new();
+        properties.insert("type".to_string(), JsonValue::from(activity.ac_type));
+
         let feat = Feature {
             bbox: None,
-            geometry: Some(geom),
+            geometry,
             id: None,
-            properties: None,
+            properties: Some(properties),
             foreign_members: None,
         };
-        feats.push(feat);
+        features.push(feat);
     }
     let fc = FeatureCollection {
         bbox: None,
-        features: feats,
+        features,
         foreign_members: None,
     };
     fc.into()

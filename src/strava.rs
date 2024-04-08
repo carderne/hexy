@@ -27,6 +27,8 @@ pub struct ActivitiesResponse {
     pub id: i64,
     pub name: String,
     pub map: Map,
+    #[serde(rename="type")]
+    pub ac_type: String,
 }
 
 fn create_activities_url() -> Result<String, ParseError> {
@@ -40,7 +42,7 @@ fn create_activities_url() -> Result<String, ParseError> {
 
 pub fn create_oauth_url() -> Result<String, ParseError> {
     let base = env::var("STRAVA_BASE").unwrap();
-    let client_id = env::var("CLIENT_ID").unwrap();
+    let client_id = env::var("STRAVA_CLIENT_ID").unwrap();
     let redirect_uri = env::var("REDIRECT_URI").unwrap();
 
     let mut url = Url::parse(&base)?;
@@ -57,8 +59,8 @@ pub fn create_oauth_url() -> Result<String, ParseError> {
 
 fn create_token_url(code: &str) -> Result<String, ParseError> {
     let base = env::var("STRAVA_BASE").unwrap();
-    let client_id = env::var("CLIENT_ID").unwrap();
-    let client_secret = env::var("CLIENT_SECRET").unwrap();
+    let client_id = env::var("STRAVA_CLIENT_ID").unwrap();
+    let client_secret = env::var("STRAVA_CLIENT_SECRET").unwrap();
 
     let mut url = Url::parse(&base)?;
     let path = "/oauth/token";

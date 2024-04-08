@@ -1,15 +1,24 @@
 use dotenvy::dotenv;
-use geojson::GeoJson;
+use rocket::fs::{relative, FileServer};
 use rocket::response::Redirect;
-use rocket::serde::json::Json;
 use rocket::{get, launch, routes, uri};
+use rocket_dyn_templates::{context, Template};
+use std::env;
 
 use hexy::{geo, strava};
 
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
-    rocket::build().mount("/", routes![health, index, user, auth, exchange])
+    rocket::build()
+        .attach(Template::custom(|engines| {
+            engines
+                .handlebars
+                // otherwise it mangles the GeoJSON
+                .register_escape_fn(handlebars::no_escape)
+        }))
+        .mount("/static", FileServer::from(relative!("static")))
+        .mount("/", routes![health, index, auth, exchange, user])
 }
 
 #[get("/health")]
@@ -38,13 +47,18 @@ async fn exchange(code: &str) -> Redirect {
     Redirect::to(redir_url)
 }
 
-#[get("/user/<id>?<access_token>")]
-async fn user(id: i32, access_token: &str) -> Json<GeoJson> {
+#[get("/user/<_id>?<access_token>")]
+async fn user(_id: i32, access_token: &str) -> Template {
     // Should get user from db/session
     // but for now just using code directly
     // let user = db::get_user(id);
     let activities = strava::get_activities(access_token).await;
 
-    println!("get activities for user {}", id);
-    Json(geo::decode_all(activities))
+    // Could just return Json here and use a `fetch` call from UI
+    // Json(geo::decode_all(activities))
+
+    // But instead return template with injected GeoJSON
+    let gj = geo::decode_all(activities);
+    let os_key = env::var("OS_KEY").unwrap();
+    Template::render("map", context! { gj: gj.to_string(), os_key })
 }
