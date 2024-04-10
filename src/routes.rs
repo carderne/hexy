@@ -41,7 +41,15 @@ pub async fn build() -> Result<Rocket<Ignite>, Error> {
 }
 
 fn routes() -> Vec<rocket::Route> {
-    openapi_get_routes![health, index, auth, callback, authed_index, logout]
+    openapi_get_routes![
+        health,
+        index,
+        auth,
+        callback,
+        authed_index,
+        logout,
+        logged_out
+    ]
 }
 
 #[openapi(tag = "Health")]
@@ -126,5 +134,11 @@ async fn callback(code: &str, jar: &CookieJar<'_>) -> Redirect {
 fn logout(jar: &CookieJar<'_>) -> Redirect {
     jar.remove_private("id");
     jar.remove_private("token");
-    Redirect::to(uri!(index))
+    Redirect::to(uri!(logged_out))
+}
+
+#[openapi(skip)]
+#[get("/logged-out")]
+async fn logged_out() -> Template {
+    Template::render("logged-out", ())
 }

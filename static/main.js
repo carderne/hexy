@@ -71,18 +71,21 @@ map.on("load", () => {
         "case",
         ["==", ["get", "type"], "Ride"], "#984ea3", // lilac
         ["==", ["get", "type"], "Run"], "#ff7f00", // orange
-        "#4daf4a", // green
+        ["==", ["get", "type"], "Walk"], "#4daf4a", // green
+        ["==", ["get", "type"], "Hike"], "#4daf4a", // green
+        ["==", ["get", "type"], "Swim"], "#377eb8", // blue
+        "#595959" // dark grey
       ],
       "line-opacity": [
-        "interpolate", 
-        ["linear"], 
+        "interpolate",
+        ["linear"],
         ["zoom"],
         7, 0.6,
         15, 0.5,
       ],
       "line-width": [
-        "interpolate", 
-        ["linear"], 
+        "interpolate",
+        ["linear"],
         ["zoom"],
         7, 2,
         15, 6,
