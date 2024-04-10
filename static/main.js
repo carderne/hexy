@@ -26,8 +26,8 @@ const hexes = {
 const map = new maplibregl.Map({
   container: "map",
   style,
-  center: [-1.5, 51.5],
-  zoom: 8.7,
+  center: [-4.2, 52.4],
+  zoom: 6,
   hash: true,
   maxZoom: 18,
   minZoom: 6,
