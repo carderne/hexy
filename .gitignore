@@ -1,6 +1,7 @@
 # Extra
 .env
 db.sqlite
+db.sqlite*
 icon
 
 # Node

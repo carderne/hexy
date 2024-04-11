@@ -1,3 +1,4 @@
+use rocket::fairing::AdHoc;
 use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
@@ -8,11 +9,14 @@ use rocket_okapi::settings::UrlObject;
 use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*};
 use std::env;
 
+use crate::db::Db;
 use crate::models::{is_dt_past, ts_to_dt, Data, User, UserDb};
 use crate::{data, db, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
     rocket::build()
+        .attach(Db::fairing())
+        .attach(AdHoc::try_on_ignite("Migrations", db::migrate))
         .attach(Template::custom(|engines| {
             engines
                 .handlebars
@@ -75,10 +79,10 @@ fn authed_index(user: User) -> Template {
 
 #[openapi(skip)]
 #[get("/data")]
-async fn get_data(user: User) -> Json<Data> {
+async fn get_data(conn: Db, user: User) -> Json<Data> {
     let User { id } = user;
 
-    let user = db::get_user(id);
+    let user = db::get_user(&conn, id).await;
     let user: UserDb = match user {
         Some(user) => user,
         None => {
@@ -99,7 +103,7 @@ async fn get_data(user: User) -> Json<Data> {
         // get a new token (using refresh_token) if this one expired
         let token_response =
             strava::get_token(&user.refresh_token, strava::GrantType::Refresh).await;
-        db::save_user(&token_response);
+        db::save_user(&conn, &token_response).await;
         token_response.access_token
     } else {
         // otherwise use the current one
@@ -117,7 +121,10 @@ async fn get_data(user: User) -> Json<Data> {
         .collect();
 
     let activities = data::to_geojson(activities);
-    Json(Data { activities: Some(activities), cells })
+    Json(Data {
+        activities: Some(activities),
+        cells,
+    })
 }
 
 #[openapi(tag = "OAuth")]
@@ -127,11 +134,11 @@ fn auth() -> Redirect {
     Redirect::to(url)
 }
 
-#[openapi(tag = "OAuth")]
+#[openapi(skip)]
 #[get("/callback?<code>")]
-async fn callback(code: &str, jar: &CookieJar<'_>) -> Redirect {
+async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
     let token_response = strava::get_token(code, strava::GrantType::Auth).await;
-    db::save_user(&token_response);
+    db::save_user(&conn, &token_response).await;
 
     let mut c_id: Cookie = Cookie::new("id", token_response.athlete.id.to_string());
     // This happens after the OAuth flow and if SameSite::Strict
