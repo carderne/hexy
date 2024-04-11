@@ -1,0 +1,19 @@
+{
+  "name": "hexy",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "lint": "prettier --check static && eslint static",
+    "format": "prettier --write static",
+    "tw": "tailwindcss -i tailwind.css -o static/style.css --watch --minify"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "postcss": "^8.4.38",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.4.3"
+  },
+  "type": "module",
+  "dependencies": {}
+}

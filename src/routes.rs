@@ -1,6 +1,7 @@
 use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
+use rocket::serde::json::Json;
 use rocket::{get, uri, Error, Ignite, Rocket};
 use rocket_dyn_templates::{context, Template};
 use rocket_okapi::settings::UrlObject;
@@ -8,7 +9,7 @@ use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*};
 use std::env;
 use time::{Duration, OffsetDateTime};
 
-use crate::models::User;
+use crate::models::{Data, User};
 use crate::{data, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
@@ -48,7 +49,8 @@ fn routes() -> Vec<rocket::Route> {
         callback,
         authed_index,
         logout,
-        logged_out
+        logged_out,
+        get_data,
     ]
 }
 
@@ -66,8 +68,16 @@ fn index() -> Redirect {
 
 #[openapi(skip)]
 #[get("/")]
-async fn authed_index(user: User) -> Template {
-    let User { id, token } = user;
+fn authed_index(user: User) -> Template {
+    let User { id, token: _ } = user;
+    let os_key = env::var("OS_KEY").unwrap();
+    Template::render("map", context! { id, os_key })
+}
+
+#[openapi(skip)]
+#[get("/data")]
+async fn get_data(user: User) -> Json<Data> {
+    let User { id: _, token } = user;
     // Should get user from db/session
     // but for now just using code directly
     // let user = db::get_user(id);
@@ -89,9 +99,8 @@ async fn authed_index(user: User) -> Template {
         .map(|cell_index| format!("\"{:x}\"", cell_index))
         .collect();
 
-    let gj = data::to_geojson(activities).to_string();
-    let os_key = env::var("OS_KEY").unwrap();
-    Template::render("map", context! { gj, os_key, id, cells })
+    let activities = data::to_geojson(activities);
+    Json(Data { activities, cells })
 }
 
 #[openapi(tag = "OAuth")]

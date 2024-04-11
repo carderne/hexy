@@ -4,44 +4,47 @@
   <title>Hexy</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗻</text></svg>" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.png">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" />
   <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/h3-js"></script>
   <link href="/static/style.css" rel="stylesheet"/>
 </head>
 <body>
-<div id="map"></div>
-<div class="controls">
-  <div class="top">
-    <div>
-      <p><strong>Strava Activity</strong></p>
-      <p><a target="_blank" href="https://www.strava.com/athletes/{{id}}">Your Strava profile</a></p>
-      <p><a href="/logout">Logout</a></p>
-    </div>
-    <div>
-      <span class="leg" style="background-color:#d5b8da">Ride</span>
-      <span class="leg" style="background-color:#ffcb99">Run</span>
-      <span class="leg" style="background-color:#b7dfb6">Walk</span>
-      <span class="leg" style="background-color:#afcbe2">Swim</span>
-      <span class="leg" style="background-color:#bcbcbc">Other</span>
-    </div>
-  </div>
-  <div id="props" class="top">
-    <div><strong id="p-name"></strong></div>
-    <div>Date: <span id="p-date"></span></div>
-    <div>Distance: <span id="p-distance"></span></div>
-    <div>Moving time: <span id="p-moving"></span></div>
-    <div>Type: <span id="p-type"></span></div>
-    <div>Sport Type: <span id="p-sport-type"></span></div>
-    <div><a target="_blank" id="p-id" href="">View on Strava</a></div>
+<div id="map" class="w-screen h-screen"></div>
+
+
+<div id="loading" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
+  <div class="bg-white/90 p-8 rounded-lg shadow-lg">
+    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+    </svg>
+    <span class="sr-only">Loading...</span>
   </div>
 </div>
+
+<div class="text-center fixed top-2 left-2 w-1/5 bg-white/90 p-4 rounded-md flex flex-col">
+  <div id="btnRide"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#d5b8da">Ride</div>
+  <div id="btnRun"   class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#ffcb99">Run</div>
+  <div id="btnWalk"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#b7dfb6">Walk</div>
+  <div id="btnSwim"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#afcbe2">Swim</div>
+  <div id="btnOther" class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#bcbcbc">Other</div>
+  <div class="text-sm text-blue-800"><a target="_blank" href="https://www.strava.com/athletes/{{id}}">Strava profile</a></div>
+  <div class="text-sm text-blue-800"><a href="/logout">Logout</a></div>
+</div>
+
+<div id="props" class="text-center fixed bottom-2 left-2 w-1/5 bg-white/90 p-4 rounded-md flex flex-col" style="display:none">
+  <div><a id="p-id" target="_blank" href=""><strong class="text-blue-800" id="p-name"></strong></a></div>
+  <div><span id="p-type"></span></div>
+  <div><span id="p-date"></span></div>
+  <div><span id="p-distance"></span></div>
+  <div><span id="p-moving"></span></div>
+</div>
+
 <script>
 const osKey = "{{os_key}}";
-const data = {{gj}};
-const cells = {{cells}};
 </script>
-<script src="/static/main.js"></script>
+<script type="module" src="/static/main.js"></script>
 </body>
 </html>

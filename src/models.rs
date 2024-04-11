@@ -1,6 +1,8 @@
+use geojson::GeoJson;
 use rocket::http::Status;
 use rocket::request::Outcome;
 use rocket::request::{FromRequest, Request};
+use serde::Serialize;
 
 #[derive(Debug)]
 pub struct User {
@@ -25,4 +27,10 @@ impl<'r> FromRequest<'r> for User {
             _ => Outcome::Forward(Status::Unauthorized),
         }
     }
+}
+
+#[derive(Serialize)]
+pub struct Data {
+    pub activities: GeoJson,
+    pub cells: Vec<String>,
 }

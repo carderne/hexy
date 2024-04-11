@@ -15,11 +15,7 @@ pub struct Activity {
     pub start_date: chrono::DateTime<chrono::Utc>,
     pub kudos_count: i32,
     pub average_speed: f64,
-
-    #[serde(rename = "type")]
-    pub ac_type: String,
     pub sport_type: String,
-
     pub linestring: Option<LineString>,
 }
 
@@ -40,7 +36,6 @@ impl Activity {
             start_date: obj.start_date,
             kudos_count: obj.kudos_count,
             average_speed: obj.average_speed,
-            ac_type: obj.ac_type,
             sport_type: obj.sport_type,
             linestring,
         }

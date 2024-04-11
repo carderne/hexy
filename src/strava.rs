@@ -32,11 +32,7 @@ pub struct ActivityResponse {
     pub start_date: chrono::DateTime<chrono::Utc>,
     pub kudos_count: i32,
     pub average_speed: f64,
-
-    #[serde(rename = "type")]
-    pub ac_type: String,
     pub sport_type: String,
-
     pub map: Map,
 }
 
