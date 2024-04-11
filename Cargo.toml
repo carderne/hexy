@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4.37", features = ["serde"] }
+diesel = { version = "2.1.0", features = ["sqlite"] }
 dotenvy = "0.15"
 geo = "0.28.0"
 geo-types = "0.7.13"

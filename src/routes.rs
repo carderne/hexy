@@ -7,10 +7,9 @@ use rocket_dyn_templates::{context, Template};
 use rocket_okapi::settings::UrlObject;
 use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*};
 use std::env;
-use time::{Duration, OffsetDateTime};
 
-use crate::models::{Data, User};
-use crate::{data, h3, strava};
+use crate::models::{is_dt_past, ts_to_dt, Data, User, UserDb};
+use crate::{data, db, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
     rocket::build()
@@ -69,7 +68,7 @@ fn index() -> Redirect {
 #[openapi(skip)]
 #[get("/")]
 fn authed_index(user: User) -> Template {
-    let User { id, token: _ } = user;
+    let User { id } = user;
     let os_key = env::var("OS_KEY").unwrap();
     Template::render("map", context! { id, os_key })
 }
@@ -77,20 +76,38 @@ fn authed_index(user: User) -> Template {
 #[openapi(skip)]
 #[get("/data")]
 async fn get_data(user: User) -> Json<Data> {
-    let User { id: _, token } = user;
-    // Should get user from db/session
-    // but for now just using code directly
-    // let user = db::get_user(id);
+    let User { id } = user;
 
-    // TODO flash message on error (eg expired token)
+    let user = db::get_user(id);
+    let user: UserDb = match user {
+        Some(user) => user,
+        None => {
+            // TODO do something in the UI to handle this
+            return Json(Data {
+                activities: None,
+                cells: vec![],
+            });
+        }
+    };
+
+    let expiry = ts_to_dt(user.expires_at);
+    let expired = is_dt_past(expiry);
+
+    // previously I was just getting a token out of the cookie
+    // which was quite elegant, but didn't provide for refreshing...
+    let token = if expired {
+        // get a new token (using refresh_token) if this one expired
+        let token_response =
+            strava::get_token(&user.refresh_token, strava::GrantType::Refresh).await;
+        db::save_user(&token_response);
+        token_response.access_token
+    } else {
+        // otherwise use the current one
+        user.access_token
+    };
+
     let activities = strava::get_activities(&token).await;
-
-    // Could just return Json here and use a `fetch` call from UI
-    // Json(geo::decode_all(activities))
-
-    // But instead return template with injected GeoJSON
     let activities = data::decode_all(activities);
-
     let mut cells = h3::polyfill_all(&activities);
     cells.sort();
     cells.dedup();
@@ -100,7 +117,7 @@ async fn get_data(user: User) -> Json<Data> {
         .collect();
 
     let activities = data::to_geojson(activities);
-    Json(Data { activities, cells })
+    Json(Data { activities: Some(activities), cells })
 }
 
 #[openapi(tag = "OAuth")]
@@ -113,7 +130,8 @@ fn auth() -> Redirect {
 #[openapi(tag = "OAuth")]
 #[get("/callback?<code>")]
 async fn callback(code: &str, jar: &CookieJar<'_>) -> Redirect {
-    let token_response = strava::get_token(code).await;
+    let token_response = strava::get_token(code, strava::GrantType::Auth).await;
+    db::save_user(&token_response);
 
     let mut c_id: Cookie = Cookie::new("id", token_response.athlete.id.to_string());
     // This happens after the OAuth flow and if SameSite::Strict
@@ -122,19 +140,6 @@ async fn callback(code: &str, jar: &CookieJar<'_>) -> Redirect {
     c_id.set_same_site(SameSite::Lax);
     jar.add_private(c_id);
 
-    // The Strava token is valid for six hours
-    // so expire the cookie after 5!
-    let mut c_token: Cookie = Cookie::new("token", token_response.access_token);
-    c_token.set_expires(OffsetDateTime::now_utc() + Duration::hours(5));
-    // Same comment as above about Strict
-    c_token.set_same_site(SameSite::Lax);
-    jar.add_private(c_token);
-
-    // Not saving users, rather just redirect with cookies
-    // db::save_user(token_response);
-    use std::{thread, time};
-    let ten_millis = time::Duration::from_millis(1000);
-    thread::sleep(ten_millis);
     Redirect::to(uri!(authed_index))
 }
 
@@ -142,7 +147,6 @@ async fn callback(code: &str, jar: &CookieJar<'_>) -> Redirect {
 #[get("/logout")]
 fn logout(jar: &CookieJar<'_>) -> Redirect {
     jar.remove_private("id");
-    jar.remove_private("token");
     Redirect::to(uri!(logged_out))
 }
 

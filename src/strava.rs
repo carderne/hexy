@@ -3,6 +3,11 @@ use serde::Deserialize;
 use std::env;
 use url::{ParseError, Url};
 
+pub enum GrantType {
+    Auth,
+    Refresh,
+}
+
 #[derive(Deserialize)]
 pub struct Athlete {
     pub id: i32,
@@ -63,10 +68,14 @@ pub fn create_oauth_url() -> Result<String, ParseError> {
     Ok(url.to_string())
 }
 
-fn create_token_url(code: &str) -> Result<String, ParseError> {
+fn create_token_url(code: &str, grant_type: GrantType) -> Result<String, ParseError> {
     let base = env::var("STRAVA_BASE").unwrap();
     let client_id = env::var("STRAVA_CLIENT_ID").unwrap();
     let client_secret = env::var("STRAVA_CLIENT_SECRET").unwrap();
+    let grant_type = match grant_type {
+        GrantType::Auth => "authorization_code",
+        GrantType::Refresh => "refresh_token",
+    };
 
     let mut url = Url::parse(&base)?;
     let path = "/oauth/token";
@@ -75,7 +84,7 @@ fn create_token_url(code: &str) -> Result<String, ParseError> {
         .append_pair("client_id", &client_id)
         .append_pair("client_secret", &client_secret)
         .append_pair("code", code)
-        .append_pair("grant_type", "authorization_code");
+        .append_pair("grant_type", grant_type);
     Ok(url.to_string())
 }
 
@@ -94,8 +103,8 @@ pub async fn get_activities(token: &str) -> Vec<ActivityResponse> {
         .unwrap()
 }
 
-pub async fn get_token(code: &str) -> TokenResponse {
-    let url = create_token_url(code).unwrap();
+pub async fn get_token(code: &str, grant_type: GrantType) -> TokenResponse {
+    let url = create_token_url(code, grant_type).unwrap();
     let client = reqwest::Client::new();
     client
         .post(url)
