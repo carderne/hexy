@@ -64,15 +64,17 @@ const transformRequest = (url, resourceType) => {
 
 const makeHexes = (cells) => ({
   type: "FeatureCollection",
-  features: cells.map((c, i) => ({
-    type: "Feature",
-    id: i,
-    properties: { index: c },
-    geometry: {
-      type: "MultiPolygon",
-      coordinates: h3.cellsToMultiPolygon([c], true),
+  features: [
+    {
+      type: "Feature",
+      id: "hexes",
+      properties: {},
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: h3.cellsToMultiPolygon(cells, true),
+      },
     },
-  })),
+  ],
 });
 
 const activeFilters = {
@@ -144,7 +146,6 @@ map.addControl(
 );
 
 function processData({ activities, cells }) {
-  console.log(activities);
   map.addSource("hex", { type: "geojson", data: makeHexes(cells) });
   map.addLayer({
     id: "hex",

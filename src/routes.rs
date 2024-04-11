@@ -113,7 +113,7 @@ async fn get_data(user: User) -> Json<Data> {
     cells.dedup();
     let cells: Vec<String> = cells
         .iter()
-        .map(|cell_index| format!("\"{:x}\"", cell_index))
+        .map(|cell_index| format!("{:x}", cell_index))
         .collect();
 
     let activities = data::to_geojson(activities);
