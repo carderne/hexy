@@ -3,10 +3,8 @@ use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
-use rocket::{get, uri, Error, Ignite, Rocket};
+use rocket::{get, routes, uri, Error, Ignite, Rocket};
 use rocket_dyn_templates::{context, Template};
-use rocket_okapi::settings::UrlObject;
-use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*};
 use std::env;
 
 use crate::db::Db;
@@ -17,35 +15,15 @@ pub async fn build() -> Result<Rocket<Ignite>, Error> {
     rocket::build()
         .attach(Db::fairing())
         .attach(AdHoc::try_on_ignite("Migrations", db::migrate))
-        .attach(Template::custom(|engines| {
-            engines
-                .handlebars
-                // otherwise it mangles the GeoJSON
-                .register_escape_fn(handlebars::no_escape)
-        }))
+        .attach(Template::fairing())
         .mount("/static", FileServer::from(relative!("static")))
         .mount("/", routes())
-        .mount(
-            "/rapidoc",
-            make_rapidoc(&RapiDocConfig {
-                general: GeneralConfig {
-                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
-                    ..Default::default()
-                },
-                hide_show: HideShowConfig {
-                    allow_spec_url_load: false,
-                    allow_spec_file_load: false,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }),
-        )
         .launch()
         .await
 }
 
 fn routes() -> Vec<rocket::Route> {
-    openapi_get_routes![
+    routes![
         health,
         index,
         auth,
@@ -57,19 +35,16 @@ fn routes() -> Vec<rocket::Route> {
     ]
 }
 
-#[openapi(tag = "Health")]
 #[get("/health")]
 fn health() -> &'static str {
     "ok"
 }
 
-#[openapi(skip)]
 #[get("/", rank = 2)]
 fn index() -> Redirect {
     Redirect::to(uri!(auth()))
 }
 
-#[openapi(skip)]
 #[get("/")]
 fn authed_index(user: User) -> Template {
     let User { id } = user;
@@ -77,7 +52,6 @@ fn authed_index(user: User) -> Template {
     Template::render("map", context! { id, os_key })
 }
 
-#[openapi(skip)]
 #[get("/data")]
 async fn get_data(conn: Db, user: User) -> Json<Data> {
     let User { id } = user;
@@ -127,14 +101,12 @@ async fn get_data(conn: Db, user: User) -> Json<Data> {
     })
 }
 
-#[openapi(tag = "OAuth")]
 #[get("/auth")]
 fn auth() -> Redirect {
     let url = strava::create_oauth_url().unwrap();
     Redirect::to(url)
 }
 
-#[openapi(skip)]
 #[get("/callback?<code>")]
 async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
     let token_response = strava::get_token(code, strava::GrantType::Auth).await;
@@ -150,14 +122,12 @@ async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
     Redirect::to(uri!(authed_index))
 }
 
-#[openapi(skip)]
 #[get("/logout")]
 fn logout(jar: &CookieJar<'_>) -> Redirect {
     jar.remove_private("id");
     Redirect::to(uri!(logged_out))
 }
 
-#[openapi(skip)]
 #[get("/logged-out")]
 async fn logged_out() -> Template {
     Template::render("logged-out", ())
