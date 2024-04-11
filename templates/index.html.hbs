@@ -13,6 +13,38 @@
 <body>
 <div id="map" class="w-screen h-screen"></div>
 
+{{#if logged_in}}
+  <div class="text-center fixed top-2 left-2 w-1/6 text-3xl bg-white/90 p-4 rounded-md grid grid-cols-2 grid-rows-3 gap-2">
+    <div id="btnRide"  class="cursor-pointer aspect-square bg-[#d5b8da] rounded flex justify-center items-center">🚲</div>
+    <div id="btnRun"   class="cursor-pointer aspect-square bg-[#ffcb99] rounded flex justify-center items-center">🏃</div>
+    <div id="btnWalk"  class="cursor-pointer aspect-square bg-[#b7dfb6] rounded flex justify-center items-center">🥾</div>
+    <div id="btnSwim"  class="cursor-pointer aspect-square bg-[#afcbe2] rounded flex justify-center items-center">🏊</div>
+    <div id="btnWater" class="cursor-pointer aspect-square bg-[#ffefbc] rounded flex justify-center items-center">🛶</div>
+    <div id="btnOther" class="               aspect-square bg-[#bcbcbc] rounded flex justify-center items-center">🧐</div>
+    <div class="col-span-2 text-sm">
+      <a href="/logout" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-md shadow-md transition-colors duration-300 inline-block cursor-pointer">
+        Logout
+      </a>
+    </div>
+  </div>
+{{else}}
+  <div id="login" class="fixed inset-0 bg-white bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white p-8 rounded-md shadow-md w-1/5">
+      <div class="flex flex-col items-center mb-4">
+        <div class="flex items-center">
+          <img src="static/logo256.png" class="h-12 mr-4" alt="Hexy Logo">
+          <h2 class="text-2xl font-bold">Hexy</h2>
+        </div>
+      </div>
+      <p>Login to see your Strava stuff on the map (with hexagons!)</p>
+      <div class="flex justify-center mt-4">
+        <a href="/auth" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-md shadow-md transition-colors duration-300 inline-block cursor-pointer">
+          Login
+        </a>
+      </div>
+    </div>
+  </div>
+{{/if}}
 
 <div id="loading" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
   <div class="bg-white/90 p-8 rounded-lg shadow-lg">
@@ -24,26 +56,18 @@
   </div>
 </div>
 
-<div class="text-center fixed top-2 left-2 w-1/5 bg-white/90 p-4 rounded-md flex flex-col">
-  <div id="btnRide"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#d5b8da">Ride</div>
-  <div id="btnRun"   class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#ffcb99">Run</div>
-  <div id="btnWalk"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#b7dfb6">Walk</div>
-  <div id="btnSwim"  class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#afcbe2">Swim</div>
-  <div id="btnOther" class="cursor-pointer w-1/2 my-1 mx-auto p-2 rounded" style="background-color:#bcbcbc">Other</div>
-  <div class="text-sm text-blue-800"><a target="_blank" href="https://www.strava.com/athletes/{{id}}">Strava profile</a></div>
-  <div class="text-sm text-blue-800"><a href="/logout">Logout</a></div>
-</div>
 
-<div id="props" class="text-center fixed bottom-2 left-2 w-1/5 bg-white/90 p-4 rounded-md flex flex-col" style="display:none">
+<div id="props" class="text-center fixed bottom-2 left-2 w-1/6 bg-white/90 p-4 rounded-md flex flex-col" style="display:none">
   <div><a id="p-id" target="_blank" href=""><strong class="text-blue-800" id="p-name"></strong></a></div>
-  <div><span id="p-type"></span></div>
+  <div class="text-3xl"><span id="p-type"></span></div>
   <div><span id="p-date"></span></div>
   <div><span id="p-distance"></span></div>
   <div><span id="p-moving"></span></div>
 </div>
 
 <script>
-const osKey = "{{os_key}}";
+const logged_in = {{logged_in}};
+const os_key = "{{os_key}}";
 </script>
 <script type="module" src="/static/main.js"></script>
 </body>

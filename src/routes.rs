@@ -25,13 +25,12 @@ pub async fn build() -> Result<Rocket<Ignite>, Error> {
 fn routes() -> Vec<rocket::Route> {
     routes![
         health,
-        index,
+        authed_index,
+        unauthed_index,
+        get_data,
         auth,
         callback,
-        authed_index,
         logout,
-        logged_out,
-        get_data,
     ]
 }
 
@@ -40,16 +39,21 @@ fn health() -> &'static str {
     "ok"
 }
 
-#[get("/", rank = 2)]
-fn index() -> Redirect {
-    Redirect::to(uri!(auth()))
-}
-
 #[get("/")]
 fn authed_index(user: User) -> Template {
     let User { id } = user;
     let os_key = env::var("OS_KEY").unwrap();
-    Template::render("map", context! { id, os_key })
+    let logged_in = true;
+    Template::render("index", context! { id, os_key, logged_in })
+}
+
+
+#[get("/", rank = 2)]
+fn unauthed_index() -> Template {
+    let id = "";
+    let os_key = env::var("OS_KEY").unwrap();
+    let logged_in = false;
+    Template::render("index", context! { id, os_key, logged_in })
 }
 
 #[get("/data")]
@@ -125,10 +129,5 @@ async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
 #[get("/logout")]
 fn logout(jar: &CookieJar<'_>) -> Redirect {
     jar.remove_private("id");
-    Redirect::to(uri!(logged_out))
-}
-
-#[get("/logged-out")]
-async fn logged_out() -> Template {
-    Template::render("logged-out", ())
+    Redirect::to(uri!(unauthed_index))
 }
