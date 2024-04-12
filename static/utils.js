@@ -127,6 +127,8 @@ export const setupFilters = (map) => {
 };
 
 function processData(map, { activities, cells }) {
+  const hexes = makeHexes(cells);
+  console.log(hexes);
   map.addSource("hex", { type: "geojson", data: makeHexes(cells) });
   map.addLayer({
     id: "hex",
@@ -183,12 +185,22 @@ export const fetchData = (map) => {
   document.getElementById("loading").style.display = "flex";
   fetch("/data")
     .then((res) => {
-      if (!res.ok) throw new Error("Failed to load /data");
+      if (!res.ok) {
+        console.error("server issue", res.status);
+        document.getElementById("legend").style.display = "none";
+        if (res.status === 401) {
+          document.getElementById("error401").style.display = "flex";
+        } else {
+          document.getElementById("error500").style.display = "flex";
+        }
+      }
       return res.json();
     })
     .then((res) => processData(map, res))
     .catch((err) => {
-      console.error("Failed to load /data", err);
+      console.error("failed to parse server data", err);
+      document.getElementById("legend").style.display = "none";
+      document.getElementById("error500").style.display = "flex";
     })
     .finally(() => {
       document.getElementById("loading").style.display = "none";

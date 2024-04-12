@@ -21,11 +21,7 @@ pub struct Activity {
 
 impl Activity {
     pub fn from_response(obj: ActivityResponse) -> Activity {
-        let poly = obj
-            .map
-            .polyline // TODO: AllActivities endpoint never has `polyline`
-            .as_ref()
-            .or(obj.map.summary_polyline.as_ref());
+        let poly = obj.map.summary_polyline.as_ref();
         let linestring = poly.map(|poly| polyline::decode_polyline(poly, 5).unwrap());
         Activity {
             id: obj.id,

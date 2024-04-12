@@ -1,3 +1,4 @@
+use log::info;
 use rocket::fairing::AdHoc;
 use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
@@ -8,7 +9,8 @@ use rocket_dyn_templates::{context, Template};
 use std::env;
 
 use crate::db::Db;
-use crate::models::{is_dt_past, ts_to_dt, Data, User, UserDb};
+use crate::error;
+use crate::models::{is_dt_past, ts_to_dt, Data, User};
 use crate::{data, db, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
@@ -47,7 +49,6 @@ fn authed_index(user: User) -> Template {
     Template::render("index", context! { id, os_key, logged_in })
 }
 
-
 #[get("/", rank = 2)]
 fn unauthed_index() -> Template {
     let id = "";
@@ -57,21 +58,10 @@ fn unauthed_index() -> Template {
 }
 
 #[get("/data")]
-async fn get_data(conn: Db, user: User) -> Json<Data> {
+async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
     let User { id } = user;
 
-    let user = db::get_user(&conn, id).await;
-    let user: UserDb = match user {
-        Some(user) => user,
-        None => {
-            // TODO do something in the UI to handle this
-            return Json(Data {
-                activities: None,
-                cells: vec![],
-            });
-        }
-    };
-
+    let user = db::get_user(&conn, id).await?;
     let expiry = ts_to_dt(user.expires_at);
     let expired = is_dt_past(expiry);
 
@@ -79,30 +69,30 @@ async fn get_data(conn: Db, user: User) -> Json<Data> {
     // which was quite elegant, but didn't provide for refreshing...
     let token = if expired {
         // get a new token (using refresh_token) if this one expired
+
+        info!("getting new refresh token for id {}", id);
         let token_response =
-            strava::get_token(&user.refresh_token, strava::GrantType::Refresh).await;
-        db::save_user(&conn, &token_response).await;
+            strava::get_token(&user.refresh_token, strava::GrantType::Refresh).await?;
+        db::save_user(&conn, &token_response).await?;
         token_response.access_token
     } else {
         // otherwise use the current one
         user.access_token
     };
 
-    let activities = strava::get_activities(&token).await;
+    let activities = strava::get_activities(&token).await?;
     let activities = data::decode_all(activities);
-    let mut cells = h3::polyfill_all(&activities);
-    cells.sort();
-    cells.dedup();
+    let cells = h3::polyfill_all(&activities);
     let cells: Vec<String> = cells
         .iter()
         .map(|cell_index| format!("{:x}", cell_index))
         .collect();
 
     let activities = data::to_geojson(activities);
-    Json(Data {
+    Ok(Json(Data {
         activities: Some(activities),
         cells,
-    })
+    }))
 }
 
 #[get("/auth")]
@@ -112,9 +102,9 @@ fn auth() -> Redirect {
 }
 
 #[get("/callback?<code>")]
-async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
-    let token_response = strava::get_token(code, strava::GrantType::Auth).await;
-    db::save_user(&conn, &token_response).await;
+async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Result<Redirect, error::Error> {
+    let token_response = strava::get_token(code, strava::GrantType::Auth).await?;
+    db::save_user(&conn, &token_response).await?;
 
     let mut c_id: Cookie = Cookie::new("id", token_response.athlete.id.to_string());
     // This happens after the OAuth flow and if SameSite::Strict
@@ -123,7 +113,7 @@ async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Redirect {
     c_id.set_same_site(SameSite::Lax);
     jar.add_private(c_id);
 
-    Redirect::to(uri!(authed_index))
+    Ok(Redirect::to(uri!(authed_index)))
 }
 
 #[get("/logout")]

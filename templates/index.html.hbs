@@ -14,7 +14,7 @@
 <div id="map" class="w-screen h-screen"></div>
 
 {{#if logged_in}}
-  <div class="text-center fixed top-2 left-2 w-1/6 text-3xl bg-white/90 p-4 rounded-md grid grid-cols-2 grid-rows-3 gap-2">
+  <div id="legend" class="text-center fixed top-2 left-2 w-1/6 text-3xl bg-white/90 p-4 rounded-md shadow-md grid grid-cols-2 grid-rows-3 gap-2">
     <div id="btnRide"  class="cursor-pointer aspect-square bg-[#d5b8da] rounded flex justify-center items-center">🚲</div>
     <div id="btnRun"   class="cursor-pointer aspect-square bg-[#ffcb99] rounded flex justify-center items-center">🏃</div>
     <div id="btnWalk"  class="cursor-pointer aspect-square bg-[#b7dfb6] rounded flex justify-center items-center">🥾</div>
@@ -46,6 +46,29 @@
   </div>
 {{/if}}
 
+<div id="error401" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
+  <div class="bg-white/90 p-8 rounded-lg shadow-lg">
+    <p>Authentication error, try logging in again.</p>
+    <div class="flex justify-center mt-4">
+      <a href="/auth" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-md shadow-md transition-colors duration-300 inline-block cursor-pointer">
+        Login
+      </a>
+    </div>
+  </div>
+</div>
+
+<div id="error500" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
+  <div class="bg-white/90 p-8 rounded-lg shadow-lg justify-center">
+    <p class="text-center">Unknown error, try reloading in a minute!</p>
+    <p class="text-center">(Or give up, it might br broken.)</p>
+    <div class="flex justify-center mt-4">
+      <span onclick="location.reload()" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-md shadow-md transition-colors duration-300 inline-block cursor-pointer">
+        Reload
+      </span>
+    </div>
+  </div>
+</div>
+
 <div id="loading" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
   <div class="bg-white/90 p-8 rounded-lg shadow-lg">
     <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -56,8 +79,7 @@
   </div>
 </div>
 
-
-<div id="props" class="text-center fixed bottom-2 left-2 w-1/6 bg-white/90 p-4 rounded-md flex flex-col" style="display:none">
+<div id="props" class="text-center fixed bottom-2 left-2 w-1/6 bg-white/90 p-4 rounded-md shadow-md flex flex-col" style="display:none">
   <div><a id="p-id" target="_blank" href=""><strong class="text-blue-800" id="p-name"></strong></a></div>
   <div class="text-3xl"><span id="p-type"></span></div>
   <div><span id="p-date"></span></div>

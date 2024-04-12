@@ -17,13 +17,17 @@ fn polyfill(linestring: &geo::LineString) -> Vec<CellIndex> {
 }
 
 pub fn polyfill_all(activities: &Vec<Activity>) -> Vec<CellIndex> {
-    let mut all_cells: Vec<CellIndex> = Vec::new();
+    let mut cells: Vec<CellIndex> = Vec::new();
     for activity in activities {
-        let cells = match &activity.linestring {
+        let new_cells = match &activity.linestring {
             Some(ls) => polyfill(ls),
             None => continue,
         };
-        all_cells.extend(cells);
+        cells.extend(new_cells);
     }
-    all_cells
+    cells.sort();
+    cells.dedup();
+    cells
+    // Do I want to compact?
+    // CellIndex::compact(cells).unwrap().collect::<Vec<_>>()
 }

@@ -7,15 +7,18 @@ description = "doing stuff with Strava"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.82"
 chrono = { version = "0.4.37", features = ["serde"] }
 diesel = { version = "2.1.0", features = ["sqlite"] }
 diesel_migrations = "2.1.0"
 dotenvy = "0.15"
+env_logger = "0.11.3"
 geo = "0.28.0"
 geo-types = "0.7.13"
 geojson = "0.24.1"
 h3o = { version = "0.6.2", features = ["std", "geo", "serde"] }
 handlebars = "5.1.2"
+log = "0.4.21"
 polyline = "0.10.1"
 reqwest = { version = "0.12.3", features = ["json"] }
 rocket = { version = "0.5.0", features = ["json", "secrets"] }

@@ -1,9 +1,14 @@
-use crate::models::UserDb;
-use crate::{schema, strava};
+use anyhow::Context;
 use diesel::prelude::*;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::database;
+use log::debug;
+
+use crate::error;
+use crate::models::UserDb;
+use crate::schema::users::dsl::*;
+use crate::{schema, strava};
 
 #[database("db")]
 pub struct Db(diesel::SqliteConnection);
@@ -25,13 +30,14 @@ pub async fn migrate(rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Buil
     .await
 }
 
-pub async fn save_user(db: &Db, t: &strava::TokenResponse) {
+pub async fn save_user(db: &Db, t: &strava::TokenResponse) -> Result<usize, error::Error> {
     let user = UserDb {
         id: t.athlete.id,
         refresh_token: t.refresh_token.clone(),
         access_token: t.access_token.clone(),
         expires_at: t.expires_at,
     };
+    debug!("inserting user {}", t.athlete.id);
     db.run(move |c| {
         diesel::insert_into(schema::users::table)
             .values(&user)
@@ -43,19 +49,20 @@ pub async fn save_user(db: &Db, t: &strava::TokenResponse) {
                 schema::users::expires_at.eq(user.expires_at),
             ))
             .execute(c)
-            .expect("Error saving new post");
+            .with_context(|| "db::get_user".to_string())
+            .map_err(error::Error::from)
     })
-    .await;
+    .await
 }
 
-pub async fn get_user(db: &Db, user_id: i32) -> Option<UserDb> {
-    use self::schema::users::dsl::*;
+pub async fn get_user(db: &Db, user_id: i32) -> Result<UserDb, error::Error> {
     db.run(move |c| {
         users
             .find(user_id)
             .select(UserDb::as_select())
             .first(c)
-            .ok()
+            .with_context(|| "db::get_user".to_string())
+            .map_err(error::Error::from)
     })
     .await
 }

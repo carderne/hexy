@@ -1,7 +1,10 @@
+use anyhow::Context;
 use reqwest::header::AUTHORIZATION;
 use serde::Deserialize;
 use std::env;
 use url::{ParseError, Url};
+
+use crate::error::Error;
 
 pub enum GrantType {
     Auth,
@@ -88,30 +91,35 @@ fn create_token_url(code: &str, grant_type: GrantType) -> Result<String, ParseEr
     Ok(url.to_string())
 }
 
-pub async fn get_activities(token: &str) -> Vec<ActivityResponse> {
-    let url = create_activities_url().unwrap();
+pub async fn get_activities(token: &str) -> Result<Vec<ActivityResponse>, Error> {
+    let url = create_activities_url()?;
     let client = reqwest::Client::new();
     let bearer = format!("Bearer {}", token);
-    client
+    let response = client
         .get(url)
         .header(AUTHORIZATION, bearer)
         .send()
-        .await
-        .unwrap()
+        .await?
+        .error_for_status()?;
+    let body = response
         .json::<Vec<ActivityResponse>>()
         .await
-        .unwrap()
+        .with_context(|| "strava::get_activities".to_string())?;
+    Ok(body)
 }
 
-pub async fn get_token(code: &str, grant_type: GrantType) -> TokenResponse {
-    let url = create_token_url(code, grant_type).unwrap();
+pub async fn get_token(code: &str, grant_type: GrantType) -> Result<TokenResponse, Error> {
+    let url = create_token_url(code, grant_type)?;
     let client = reqwest::Client::new();
-    client
+    let response = client
         .post(url)
         .send()
-        .await
-        .unwrap()
+        .await?
+        .error_for_status()?;
+    let body = response
         .json::<TokenResponse>()
         .await
-        .unwrap()
+        // TODO insert this function context automatically
+        .with_context(|| "strava::get_token".to_string())?;
+    Ok(body)
 }
