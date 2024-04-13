@@ -126,9 +126,7 @@ export const setupFilters = (map) => {
   });
 };
 
-function processData(map, { activities, cells }) {
-  const hexes = makeHexes(cells);
-  console.log(hexes);
+function processData(map, { activities, cells, centroid }) {
   map.addSource("hex", { type: "geojson", data: makeHexes(cells) });
   map.addLayer({
     id: "hex",
@@ -179,6 +177,9 @@ function processData(map, { activities, cells }) {
       "line-width": ["interpolate", ["linear"], ["zoom"], 7, 2, 15, 6],
     },
   });
+  if (centroid) {
+    map.jumpTo({ center: [centroid.x, centroid.y], zoom: 10.5 });
+  }
 }
 
 export const fetchData = (map) => {

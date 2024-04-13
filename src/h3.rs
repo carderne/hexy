@@ -4,7 +4,7 @@ use h3o::{
     CellIndex, Resolution,
 };
 
-use crate::data::Activity;
+use crate::models::Activity;
 
 fn polyfill(linestring: &geo::LineString) -> Vec<CellIndex> {
     let coords: Vec<geo::Coord> = linestring.to_owned().into_inner();

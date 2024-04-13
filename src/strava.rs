@@ -111,11 +111,7 @@ pub async fn get_activities(token: &str) -> Result<Vec<ActivityResponse>, Error>
 pub async fn get_token(code: &str, grant_type: GrantType) -> Result<TokenResponse, Error> {
     let url = create_token_url(code, grant_type)?;
     let client = reqwest::Client::new();
-    let response = client
-        .post(url)
-        .send()
-        .await?
-        .error_for_status()?;
+    let response = client.post(url).send().await?.error_for_status()?;
     let body = response
         .json::<TokenResponse>()
         .await

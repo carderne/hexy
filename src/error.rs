@@ -43,4 +43,3 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
         }
     }
 }
-

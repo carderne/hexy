@@ -1,9 +1,9 @@
 use anyhow::Context;
 use diesel::prelude::*;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use log::debug;
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::database;
-use log::debug;
 
 use crate::error;
 use crate::models::UserDb;

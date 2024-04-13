@@ -11,7 +11,7 @@ use std::env;
 use crate::db::Db;
 use crate::error;
 use crate::models::{is_dt_past, ts_to_dt, Data, User};
-use crate::{data, db, h3, strava};
+use crate::{db, geo, h3, strava};
 
 pub async fn build() -> Result<Rocket<Ignite>, Error> {
     rocket::build()
@@ -81,17 +81,19 @@ async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
     };
 
     let activities = strava::get_activities(&token).await?;
-    let activities = data::decode_all(activities);
+    let activities = geo::decode_all(activities);
+    let centroid = geo::get_useful_centroid(&activities);
     let cells = h3::polyfill_all(&activities);
     let cells: Vec<String> = cells
         .iter()
         .map(|cell_index| format!("{:x}", cell_index))
         .collect();
 
-    let activities = data::to_geojson(activities);
+    let activities = geo::to_geojson(activities);
     Ok(Json(Data {
         activities: Some(activities),
         cells,
+        centroid,
     }))
 }
 
