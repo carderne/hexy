@@ -14,7 +14,7 @@
 <div id="map" class="w-screen h-screen"></div>
 
 {{#if logged_in}}
-  <div id="legend" class="text-center fixed top-2 left-2 w-1/6 text-3xl bg-white/90 p-4 rounded-md shadow-md grid grid-cols-2 grid-rows-3 gap-2">
+  <div id="legend" class="text-center fixed top-2 left-2 w-2/5 md:w-1/6 text-3xl bg-white/90 p-4 rounded-md shadow-md grid grid-cols-2 grid-rows-3 gap-2">
     <div id="btnRide"  class="cursor-pointer aspect-square bg-[#d5b8da] rounded flex justify-center items-center">🚲</div>
     <div id="btnRun"   class="cursor-pointer aspect-square bg-[#ffcb99] rounded flex justify-center items-center">🏃</div>
     <div id="btnWalk"  class="cursor-pointer aspect-square bg-[#b7dfb6] rounded flex justify-center items-center">🥾</div>
@@ -79,7 +79,7 @@
   </div>
 </div>
 
-<div id="props" class="text-center fixed bottom-2 left-2 w-1/6 bg-white/90 p-4 rounded-md shadow-md flex flex-col" style="display:none">
+<div id="props" class="text-center fixed bottom-2 left-2 w-3/5 md:w-1/6 bg-white/90 p-4 rounded-md shadow-md flex flex-col" style="display:none">
   <div><a id="p-id" target="_blank" href=""><strong class="text-blue-800" id="p-name"></strong></a></div>
   <div class="text-3xl"><span id="p-type"></span></div>
   <div><span id="p-date"></span></div>
