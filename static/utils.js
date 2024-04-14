@@ -1,3 +1,5 @@
+const $ = document.getElementById.bind(document);
+
 const fmtDist = (distance) =>
   distance >= 2000
     ? `${(distance / 1000).toFixed(1)} km`
@@ -111,7 +113,7 @@ const updateFilters = (map) => {
 };
 
 const toggleButtonState = (map, id) => {
-  const button = document.getElementById(id);
+  const button = $(id);
   activeFilters[id] = !activeFilters[id];
   button.style.opacity = activeFilters[id] ? "0.5" : "1";
   updateFilters(map);
@@ -119,7 +121,7 @@ const toggleButtonState = (map, id) => {
 
 export const setupFilters = (map) => {
   Object.keys(activeFilters).forEach((key) => {
-    const button = document.getElementById(key);
+    const button = $(key);
     if (button) {
       button.addEventListener("click", () => toggleButtonState(map, key));
     }
@@ -183,28 +185,33 @@ function processData(map, { activities, cells, centroid }) {
 }
 
 export const fetchData = (map) => {
-  document.getElementById("loading").style.display = "flex";
+  $("loading").style.display = "flex";
+  $("loading").style.display = "flex";
   fetch("/data")
     .then((res) => {
       if (!res.ok) {
-        console.error("server issue", res.status);
-        document.getElementById("legend").style.display = "none";
+        $("legend").style.display = "none";
         if (res.status === 401) {
-          document.getElementById("error401").style.display = "flex";
+          $("error401").style.display = "flex";
         } else {
-          document.getElementById("error500").style.display = "flex";
+          $("error500").style.display = "flex";
         }
+        throw new Error("backend");
       }
       return res.json();
     })
     .then((res) => processData(map, res))
     .catch((err) => {
-      console.error("failed to parse server data", err);
-      document.getElementById("legend").style.display = "none";
-      document.getElementById("error500").style.display = "flex";
+      if (err.message !== "backend") {
+        $("legend").style.display = "none";
+        $("error500").style.display = "flex";
+        throw new Error("failed to parse backend data", err);
+      } else {
+        throw err;
+      }
     })
     .finally(() => {
-      document.getElementById("loading").style.display = "none";
+      $("loading").style.display = "none";
     });
 };
 
@@ -212,20 +219,19 @@ export const mapInteractions = (map) => {
   map.on("click", "activities", (e) => {
     e.preventDefault();
     const props = e.features?.[0]?.properties;
-    document.getElementById("p-id").href =
-      `https://www.strava.com/activities/${props.id}`;
-    document.getElementById("p-name").innerText = props.name;
-    document.getElementById("p-date").innerText = fmtDate(props.start_date);
-    document.getElementById("p-distance").innerText = fmtDist(props.distance);
-    document.getElementById("p-moving").innerText = fmtTime(props.moving_time);
-    document.getElementById("p-type").innerText = fmtActivity(props.sport_type);
+    $("p-id").href = `https://www.strava.com/activities/${props.id}`;
+    $("p-name").innerText = props.name;
+    $("p-date").innerText = fmtDate(props.start_date);
+    $("p-distance").innerText = fmtDist(props.distance);
+    $("p-moving").innerText = fmtTime(props.moving_time);
+    $("p-type").innerText = fmtActivity(props.sport_type);
 
-    document.getElementById("props").style.display = "block";
+    $("props").style.display = "block";
   });
 
   map.on("click", function (e) {
     if (e.defaultPrevented === false) {
-      document.getElementById("props").style.display = "none";
+      $("props").style.display = "none";
     }
   });
 

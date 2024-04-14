@@ -1,7 +1,8 @@
 use anyhow::Context;
+use diesel::connection::SimpleConnection;
 use diesel::prelude::*;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use log::debug;
+use log::{debug, warn};
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::database;
 
@@ -65,4 +66,20 @@ pub async fn get_user(db: &Db, user_id: i32) -> Result<UserDb, error::Error> {
             .map_err(error::Error::from)
     })
     .await
+}
+
+/// These pragmas hopefully prevent the DB from locking up
+/// Source: https://github.com/the-lean-crate/criner/issues/1
+pub async fn prep_db(db: &Db) -> Result<(), error::Error> {
+    db.run(|c| {
+        c.batch_execute("
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = NORMAL;
+            PRAGMA wal_autocheckpoint = 100;
+            PRAGMA wal_checkpoint(TRUNCATE);
+        ").map_err(|err| {
+            warn!("Failed to prep db");
+            error::Error::from(err)
+        })
+    }).await
 }

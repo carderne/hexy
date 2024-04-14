@@ -1,10 +1,8 @@
 use log::info;
-use rocket::fairing::AdHoc;
-use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
-use rocket::{get, routes, uri, Error, Ignite, Rocket};
+use rocket::{get, routes, uri};
 use rocket_dyn_templates::{context, Template};
 use std::env;
 
@@ -13,18 +11,7 @@ use crate::error;
 use crate::models::{is_dt_past, ts_to_dt, Data, User};
 use crate::{db, geo, h3, strava};
 
-pub async fn build() -> Result<Rocket<Ignite>, Error> {
-    rocket::build()
-        .attach(Db::fairing())
-        .attach(AdHoc::try_on_ignite("Migrations", db::migrate))
-        .attach(Template::fairing())
-        .mount("/static", FileServer::from(relative!("static")))
-        .mount("/", routes())
-        .launch()
-        .await
-}
-
-fn routes() -> Vec<rocket::Route> {
+pub fn routes() -> Vec<rocket::Route> {
     routes![
         health,
         authed_index,
