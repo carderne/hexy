@@ -1,6 +1,10 @@
 # hexy
 A simple webapp that loads your Strava data, displays it on a map, and let you fill in hexagons with your activities.
 
+Similar to [VeloViewer Max Squares](https://blog.veloviewer.com/veloviewer-explorer-score-and-max-square/), but with two differences:
+1. Hexagons instead of squares, because hexagons are the [Bestagons](https://www.youtube.com/watch?v=thOifuHs6eY)
+2. Little hexagons, to encourage walks and runs and exploring local spots
+
 Try it out: [hexy.rdrn.me](https://hexy.rdrn.me)
 
 <img width="1094" alt="Screenshot 2024-04-13 at 21 24 17" src="https://github.com/carderne/hexy/assets/19817302/bd6acec8-2d4d-436e-947e-a0dc852a86a7">
@@ -15,14 +19,7 @@ Rust API with the following bits:
 Bit of plain HTML, JavaScript and Tailwind for the frontend.
 I'd like to find a nice setup for using compiled TypeScript for the frontend (React or Svelte) together with a backend-first (single server, lots of HTTP) compiled language approach but I haven't found it yet...
 
-Running on Render.com with SQLite DB on a persistent disk.
-
-## Todo
-- [ ] Write some tests
-- [ ] Compact hexagons into bigger ones
-- [ ] Maybe squares are just better?
-- [ ] Improve hexagon styling
-- [x] Highlight selected activity
+Running on [render.com](https://render.com/) with a local SQLite DB on a persistent disk.
 
 ## Development
 You'll need to create a `.env` file with the following:

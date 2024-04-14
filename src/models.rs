@@ -59,7 +59,7 @@ pub fn is_dt_past(datetime: NaiveDateTime) -> bool {
     datetime < now_plus_one_hour
 }
 
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Activity {
     pub id: i64,
     pub name: String,
@@ -75,8 +75,8 @@ pub struct Activity {
 
 impl Activity {
     pub fn from_response(obj: ActivityResponse) -> Activity {
-        let poly = obj.map.summary_polyline.as_ref();
-        let linestring = poly.map(|poly| polyline::decode_polyline(poly, 5).unwrap());
+        let poly = obj.map.summary_polyline;
+        let linestring = poly.map(|poly| polyline::decode_polyline(&poly, 5).unwrap());
         Activity {
             id: obj.id,
             name: obj.name,
@@ -98,5 +98,69 @@ impl Activity {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::strava;
+    use chrono::{NaiveDate, NaiveTime};
+
+    use super::*;
+
+    #[test]
+    fn test_ts_to_dt() {
+        let d = NaiveDate::from_ymd_opt(2024, 4, 1).unwrap();
+        let t = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+        let want = NaiveDateTime::new(d, t);
+        let got = ts_to_dt(1711929600);
+        assert_eq!(want, got);
+    }
+
+    #[test]
+    fn test_is_dt_past() {
+        let d = NaiveDate::from_ymd_opt(1980, 1, 1).unwrap();
+        let t = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+        let dt = NaiveDateTime::new(d, t);
+        let want = true;
+        let got = is_dt_past(dt);
+        assert_eq!(want, got);
+    }
+
+    #[test]
+    fn activity_from_response() {
+        let d = NaiveDate::from_ymd_opt(1980, 1, 1).unwrap();
+        let t = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+        let dt = NaiveDateTime::new(d, t);
+        let dt = dt.and_utc();
+        let want = Activity {
+            id: 0,
+            name: "".to_string(),
+            distance: 0.0,
+            moving_time: 0,
+            elapsed_time: 0,
+            start_date: dt,
+            kudos_count: 0,
+            average_speed: 0.0,
+            sport_type: "Ride".to_string(),
+            linestring: None,
+        };
+        let map = strava::Map {
+            summary_polyline: None,
+        };
+        let res = strava::ActivityResponse {
+            id: 0,
+            name: "".to_string(),
+            distance: 0.0,
+            moving_time: 0,
+            elapsed_time: 0,
+            start_date: dt,
+            kudos_count: 0,
+            average_speed: 0.0,
+            sport_type: "Ride".to_string(),
+            map,
+        };
+        let got = Activity::from_response(res);
+        assert_eq!(want, got);
     }
 }

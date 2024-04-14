@@ -1,9 +1,12 @@
 use log::info;
+use rocket::fairing::AdHoc;
+use rocket::fs::{relative, FileServer};
 use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
-use rocket::{get, routes, uri};
-use rocket_dyn_templates::{context, Template};
+use rocket::{get, routes, uri, Build, Rocket};
+use rocket_dyn_templates::context;
+use rocket_dyn_templates::Template;
 use std::env;
 
 use crate::db::Db;
@@ -11,7 +14,27 @@ use crate::error;
 use crate::models::{is_dt_past, ts_to_dt, Data, User};
 use crate::{db, geo, h3, strava};
 
-pub fn routes() -> Vec<rocket::Route> {
+pub fn build(prep_db: bool) -> Rocket<Build> {
+    let mut s = rocket::build()
+        .attach(db::Db::fairing())
+        .attach(Template::fairing())
+        .mount("/static", FileServer::from(relative!("static")))
+        .mount("/", routes());
+
+    if prep_db {
+        s = s
+            .attach(AdHoc::try_on_ignite("Migrations", db::migrate)) // Database migrations
+            .attach(AdHoc::on_liftoff("Startup Check", |rocket| {
+                Box::pin(async move {
+                    let d = db::Db::get_one(rocket).await.unwrap();
+                    db::prep_db(&d).await.expect("Failed to prep db");
+                })
+            }));
+    }
+    s
+}
+
+fn routes() -> Vec<rocket::Route> {
     routes![
         health,
         authed_index,
@@ -58,8 +81,9 @@ async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
         // get a new token (using refresh_token) if this one expired
 
         info!("getting new refresh token for id {}", id);
-        let token_response =
-            strava::get_token(&user.refresh_token, strava::GrantType::Refresh).await?;
+        let token_response = strava::StravaClient::default()
+            .get_token(&user.refresh_token, strava::GrantType::Refresh)
+            .await?;
         db::save_user(&conn, &token_response).await?;
         token_response.access_token
     } else {
@@ -67,7 +91,9 @@ async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
         user.access_token
     };
 
-    let activities = strava::get_activities(&token).await?;
+    let activities = strava::StravaClient::default()
+        .get_activities(&token)
+        .await?;
     let activities = geo::decode_all(activities);
     let centroid = geo::get_useful_centroid(&activities);
     let cells = h3::polyfill_all(&activities);
@@ -86,13 +112,15 @@ async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
 
 #[get("/auth")]
 fn auth() -> Redirect {
-    let url = strava::create_oauth_url().unwrap();
+    let url = strava::StravaClient::default().create_oauth_url().unwrap();
     Redirect::to(url)
 }
 
 #[get("/callback?<code>")]
 async fn callback(conn: Db, code: &str, jar: &CookieJar<'_>) -> Result<Redirect, error::Error> {
-    let token_response = strava::get_token(code, strava::GrantType::Auth).await?;
+    let token_response = strava::StravaClient::default()
+        .get_token(code, strava::GrantType::Auth)
+        .await?;
     db::save_user(&conn, &token_response).await?;
 
     let mut c_id: Cookie = Cookie::new("id", token_response.athlete.id.to_string());

@@ -28,6 +28,4 @@ pub fn polyfill_all(activities: &Vec<Activity>) -> Vec<CellIndex> {
     cells.sort();
     cells.dedup();
     cells
-    // Do I want to compact?
-    // CellIndex::compact(cells).unwrap().collect::<Vec<_>>()
 }
