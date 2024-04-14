@@ -188,7 +188,7 @@ const processData = async (map, { activities, cells, centroid }) => {
       ],
     },
   });
-  if (centroid) {
+  if (centroid && map.getZoom() < 9) {
     map.jumpTo({ center: [centroid.x, centroid.y], zoom: 10.5 });
   }
 };

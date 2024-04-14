@@ -11,7 +11,7 @@ const map = new maplibregl.Map({
     "https://raw.githubusercontent.com/OrdnanceSurvey/OS-Vector-Tile-API-Stylesheets/main/OS_VTS_3857_Light.json",
   center: [-4.2, 52.4],
   zoom: 6,
-  hash: true,
+  hash: false,
   maxZoom: 18,
   minZoom: 6,
   transformRequest: transformRequest(os_key),
