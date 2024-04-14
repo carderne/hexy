@@ -27,6 +27,7 @@ map.addControl(
   new maplibregl.NavigationControl({
     showCompass: false,
   }),
+  "bottom-right",
 );
 
 map.on("load", () => {
