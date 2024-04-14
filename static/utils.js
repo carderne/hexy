@@ -128,7 +128,7 @@ export const setupFilters = (map) => {
   });
 };
 
-function processData(map, { activities, cells, centroid }) {
+const processData = async (map, { activities, cells, centroid }) => {
   map.addSource("hex", { type: "geojson", data: makeHexes(cells) });
   map.addLayer({
     id: "hex",
@@ -147,9 +147,10 @@ function processData(map, { activities, cells, centroid }) {
     source: "activities",
     layout: { "line-join": "round", "line-cap": "round" },
     paint: {
-      "line-width": 8,
       "line-color": [
         "case",
+        ["boolean", ["feature-state", "selected"], false],
+        "#000000",
         [
           "any",
           ["==", ["get", "sport_type"], "EBikeRide"],
@@ -176,13 +177,21 @@ function processData(map, { activities, cells, centroid }) {
         "#595959", // dark grey
       ],
       "line-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.6, 15, 0.5],
-      "line-width": ["interpolate", ["linear"], ["zoom"], 7, 2, 15, 6],
+      "line-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        7,
+        ["case", ["boolean", ["feature-state", "selected"], false], 4, 2],
+        15,
+        ["case", ["boolean", ["feature-state", "selected"], false], 12, 6],
+      ],
     },
   });
   if (centroid) {
     map.jumpTo({ center: [centroid.x, centroid.y], zoom: 10.5 });
   }
-}
+};
 
 export const fetchData = (map) => {
   $("loading").style.display = "flex";
@@ -215,6 +224,8 @@ export const fetchData = (map) => {
     });
 };
 
+let selectedId = null;
+
 export const mapInteractions = (map) => {
   map.on("click", "activities", (e) => {
     e.preventDefault();
@@ -225,13 +236,32 @@ export const mapInteractions = (map) => {
     $("p-distance").innerText = fmtDist(props.distance);
     $("p-moving").innerText = fmtTime(props.moving_time);
     $("p-type").innerText = fmtActivity(props.sport_type);
-
     $("props").style.display = "block";
+
+    if (e.features.length > 0) {
+      if (selectedId !== null) {
+        map.setFeatureState(
+          { source: "activities", id: selectedId },
+          { selected: false },
+        );
+      }
+      selectedId = e.features[0].id;
+      map.setFeatureState(
+        { source: "activities", id: selectedId },
+        { selected: true },
+      );
+    }
   });
 
   map.on("click", function (e) {
     if (e.defaultPrevented === false) {
       $("props").style.display = "none";
+      if (selectedId !== null) {
+        map.setFeatureState(
+          { source: "activities", id: selectedId },
+          { selected: false },
+        );
+      }
     }
   });
 

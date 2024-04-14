@@ -33,7 +33,7 @@ pub fn to_geojson(activities: Vec<Activity>) -> GeoJson {
             geometry,
             properties,
             bbox: None,
-            id: None,
+            id: Some(geojson::feature::Id::Number(activity.id.into())),
             foreign_members: None,
         };
         features.push(feat);

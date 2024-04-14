@@ -22,7 +22,7 @@ Running on Render.com with SQLite DB on a persistent disk.
 - [ ] Compact hexagons into bigger ones
 - [ ] Maybe squares are just better?
 - [ ] Improve hexagon styling
-- [ ] Highlight selected activity
+- [x] Highlight selected activity
 
 ## Development
 You'll need to create a `.env` file with the following:
