@@ -6,6 +6,7 @@ use log::{debug, warn};
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::database;
 
+use crate::crypto::Crypto;
 use crate::error;
 use crate::models::UserDb;
 use crate::schema::users::dsl::*;
@@ -32,9 +33,10 @@ pub async fn migrate(rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Buil
 }
 
 pub async fn save_user(db: &Db, t: &strava::TokenResponse) -> Result<usize, error::Error> {
+    let ref_token = Crypto::default().encrypt(&t.refresh_token);
     let user = UserDb {
         id: t.athlete.id,
-        refresh_token: t.refresh_token.clone(),
+        refresh_token: ref_token,
         access_token: t.access_token.clone(),
         expires_at: t.expires_at,
     };
@@ -57,29 +59,42 @@ pub async fn save_user(db: &Db, t: &strava::TokenResponse) -> Result<usize, erro
 }
 
 pub async fn get_user(db: &Db, user_id: i32) -> Result<UserDb, error::Error> {
-    db.run(move |c| {
-        users
-            .find(user_id)
-            .select(UserDb::as_select())
-            .first(c)
-            .with_context(|| "db::get_user".to_string())
-            .map_err(error::Error::from)
-    })
-    .await
+    let user = db
+        .run(move |c| {
+            users
+                .find(user_id)
+                .select(UserDb::as_select())
+                .first(c)
+                .with_context(|| "db::get_user".to_string())
+                .map_err(error::Error::from)
+        })
+        .await?;
+    let ref_token = Crypto::default().decrypt_fallback(&user.refresh_token);
+    let user = UserDb {
+        id: user.id,
+        access_token: user.access_token,
+        refresh_token: ref_token,
+        expires_at: user.expires_at,
+    };
+    Ok(user)
 }
 
 /// These pragmas hopefully prevent the DB from locking up
 /// Source: https://github.com/the-lean-crate/criner/issues/1
 pub async fn prep_db(db: &Db) -> Result<(), error::Error> {
     db.run(|c| {
-        c.batch_execute("
+        c.batch_execute(
+            "
             PRAGMA journal_mode = WAL;
             PRAGMA synchronous = NORMAL;
             PRAGMA wal_autocheckpoint = 100;
             PRAGMA wal_checkpoint(TRUNCATE);
-        ").map_err(|err| {
+        ",
+        )
+        .map_err(|err| {
             warn!("Failed to prep db");
             error::Error::from(err)
         })
-    }).await
+    })
+    .await
 }

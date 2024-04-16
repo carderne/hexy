@@ -24,6 +24,8 @@ Running on [render.com](https://render.com/) with a local SQLite DB on a persist
 ## Development
 You'll need to create a `.env` file with the following:
 ```bash
+RUST_LOG=info
+FERNET_KEYS='32-bytes-of-base64-encoded,another-one-for-rotation'
 ROCKET_DATABASES='{db={url="db.sqlite"}}'
 ROCKET_SECRET_KEY=''
 REDIRECT_URI='http://localhost:8000/callback'

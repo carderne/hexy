@@ -202,6 +202,8 @@ export const fetchData = (map) => {
         $("legend").style.display = "none";
         if (res.status === 401) {
           $("error401").style.display = "flex";
+        } else if (res.status === 503) {
+          $("error503").style.display = "flex";
         } else {
           $("error500").style.display = "flex";
         }
@@ -214,9 +216,9 @@ export const fetchData = (map) => {
       if (err.message !== "backend") {
         $("legend").style.display = "none";
         $("error500").style.display = "flex";
-        throw new Error("failed to parse backend data", err);
+        console.err("failed to parse backend data", err);
       } else {
-        throw err;
+        console.err("backend error", err);
       }
     })
     .finally(() => {

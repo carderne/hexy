@@ -989,6 +989,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "658bd65b1cf4c852a3cc96f18a8ce7b5640f6b703f905c7d74532294c2a63984"
 
 [[package]]
+name = "fernet"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3364d69f691f3903b1a71605fa04f40a7c2d259f0f0512347e36d19a63debf1f"
+dependencies = [
+ "base64 0.21.7",
+ "byteorder",
+ "getrandom",
+ "openssl",
+ "zeroize",
+]
+
+[[package]]
 name = "figment"
 version = "0.10.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1417,6 +1430,7 @@ dependencies = [
  "diesel_migrations",
  "dotenvy",
  "env_logger",
+ "fernet",
  "geo",
  "geo-types",
  "geojson",
@@ -3906,6 +3920,26 @@ name = "zerocopy-derive"
 version = "0.7.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ce1b18ccd8e73a9321186f97e46f9f04b778851177567b1975109d26a08d2a6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
+]
+
+[[package]]
+name = "zeroize"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",

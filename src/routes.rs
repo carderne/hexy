@@ -79,8 +79,7 @@ async fn get_data(conn: Db, user: User) -> Result<Json<Data>, error::Error> {
     // which was quite elegant, but didn't provide for refreshing...
     let token = if expired {
         // get a new token (using refresh_token) if this one expired
-
-        info!("getting new refresh token for id {}", id);
+        info!("getting new token for id {}", id);
         let token_response = strava::StravaClient::default()
             .get_token(&user.refresh_token, strava::GrantType::Refresh)
             .await?;

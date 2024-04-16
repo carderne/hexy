@@ -2,6 +2,7 @@
 //!
 //! Playing around with the Strava API
 
+pub mod crypto;
 pub mod db;
 pub mod error;
 pub mod geo;
