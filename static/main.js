@@ -3,6 +3,7 @@ import {
   fetchData,
   mapInteractions,
   setupFilters,
+  setupInfoClick,
 } from "./utils.js";
 
 const map = new maplibregl.Map({
@@ -37,3 +38,5 @@ map.on("load", () => {
     setupFilters(map);
   }
 });
+
+setupInfoClick();

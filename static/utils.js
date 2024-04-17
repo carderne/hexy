@@ -275,3 +275,15 @@ export const mapInteractions = (map) => {
     map.getCanvas().style.cursor = "";
   });
 };
+
+export const setupInfoClick = () => {
+  $("info").onclick = () => {
+    $("info").style.display = "none";
+  };
+  $("info-inner").onclick = (e) => {
+    e.stopPropagation();
+  };
+  $("info-btn").onclick = () => {
+    $("info").style.display = "flex";
+  };
+};

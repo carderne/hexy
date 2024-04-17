@@ -25,10 +25,15 @@
     <div id="btnSwim"  class="cursor-pointer aspect-square bg-[#afcbe2] rounded flex justify-center items-center">🏊</div>
     <div id="btnWater" class="cursor-pointer aspect-square bg-[#ffefbc] rounded flex justify-center items-center">🛶</div>
     <div id="btnOther" class="               aspect-square bg-[#bcbcbc] rounded flex justify-center items-center">🧐</div>
-    <div class="col-span-2 text-sm">
-      <a href="/logout" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-md shadow-md transition-colors duration-300 inline-block cursor-pointer">
+    <div class="text-sm">
+      <a href="/logout" class="block bg-gray-700 hover:bg-gray-800 text-white font-bold w-full py-2 px-2 rounded shadow-md transition-colors duration-300 inline-block cursor-pointer">
         Logout
       </a>
+    </div>
+    <div class="text-sm">
+      <div id="info-btn" class="w-full bg-gradient-to-r from-[#d5b8da] via-[#ffcb99] to-[#b7dfb6] via-[#afcbe2] font-bold py-2 px-2 rounded shadow-md cursor-pointer">
+        What?
+      </div>
     </div>
   </div>
 {{else}}
@@ -49,6 +54,20 @@
     </div>
   </div>
 {{/if}}
+
+<div id="info" class="fixed inset-0 flex bg-black/20 justify-center items-center z-50" style="display:none">
+  <div id="info-inner" class="w-4/5 md:w-[50ch] bg-white/90 p-8 rounded-lg shadow-lg">
+      <div class="flex flex-col items-center mb-4">
+        <div class="flex items-center">
+          <img src="static/logo256.png" class="h-12 mr-4" alt="Hexy Logo">
+          <h2 class="text-2xl font-bold">Hexy</h2>
+        </div>
+      </div>
+    <p class="my-4">Just a little app to make it a bit easier to explore all your Strava activities on a single map.</p>
+    <p class="my-4">As a bonus, you get to fill out hexagons with every workout.</p>
+    <p class="mt-4">You can have a look at the source code <a class="font-bold text-blue-800" href="https://github.com/carderne/hexy">here</a>.</p>
+  </div>
+</div>
 
 <div id="error401" role="status" class="fixed inset-0 flex justify-center items-center z-50" style="display:none">
   <div class="bg-white/90 p-8 rounded-lg shadow-lg">
