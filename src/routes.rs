@@ -43,6 +43,8 @@ fn routes() -> Vec<rocket::Route> {
         auth,
         callback,
         logout,
+        home,
+        privacy,
     ]
 }
 
@@ -137,3 +139,14 @@ fn logout(jar: &CookieJar<'_>) -> Redirect {
     jar.remove_private("id");
     Redirect::to(uri!(unauthed_index))
 }
+
+#[get("/home")]
+fn home() -> Template {
+    Template::render("home", ())
+}
+
+#[get("/privacy")]
+fn privacy() -> Template {
+    Template::render("privacy", ())
+}
+
