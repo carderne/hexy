@@ -11,12 +11,12 @@ pub enum GrantType {
     Refresh,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Athlete {
     pub id: i32,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct TokenResponse {
     pub athlete: Athlete,
     pub refresh_token: String,
@@ -145,9 +145,9 @@ impl StravaClient {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use httpmock::prelude::*;
     use tokio;
-    use super::*;
 
     #[tokio::test]
     async fn test_get_activities() {

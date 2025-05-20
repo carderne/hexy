@@ -27,13 +27,13 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
         }
         if self.0.downcast_ref::<reqwest::Error>().is_some() {
             error!("Reqwest error occurred: {}", msg);
-            return Status::Unauthorized.respond_to(req);
+            Status::Unauthorized.respond_to(req)
         } else if self.0.downcast_ref::<diesel::result::Error>().is_some() {
             error!("Diesel error occurred: {}", msg);
-            return Status::ServiceUnavailable.respond_to(req);
+            Status::ServiceUnavailable.respond_to(req)
         } else if self.0.downcast_ref::<url::ParseError>().is_some() {
             error!("URL parse error occurred: {}", msg);
-            return Status::InternalServerError.respond_to(req);
+            Status::InternalServerError.respond_to(req)
         } else {
             if let Some(e) = self.0.downcast_ref::<reqwest::Error>() {
                 msg = format!("{}; type_name={}", msg, type_name_of_val(&e));

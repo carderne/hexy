@@ -12,4 +12,3 @@ async fn main() {
         Err(err) => println!("Rocket had an error: {}", err),
     };
 }
-

@@ -149,4 +149,3 @@ fn home() -> Template {
 fn privacy() -> Template {
     Template::render("privacy", ())
 }
-
