@@ -1,0 +1,12 @@
+Dockerfile
+.git
+.github
+tests
+package-lock.json
+package.json
+README.md
+tailwind.config.js
+tailwind.css
+test.env
+
+*.sqlit*
